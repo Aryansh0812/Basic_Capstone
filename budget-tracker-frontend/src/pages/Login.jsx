@@ -13,23 +13,53 @@ const Container = styled.div`
   padding: 20px;
 `;
 
+// const Card = styled.div`
+//   width: 400px;
+//   background: white;
+//   padding: 40px;
+//   border-radius: 16px;
+//   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+//   animation: fadeIn 0.6s ease;
+
+//   @keyframes fadeIn {
+//     from {
+//       opacity: 0;
+//       transform: translateY(-10px);
+//     }
+//     to {
+//       opacity: 1;
+//       transform: translateY(0);
+//     }
+//   }
+// `;
 const Card = styled.div`
   width: 400px;
   background: white;
   padding: 40px;
   border-radius: 16px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
-  animation: fadeIn 0.6s ease;
+  box-shadow: 0 10px 30px rgba(2,6,23,0.12);
+  transform-origin: center;
+  animation: authCardIn 520ms cubic-bezier(.22,.9,.35,1);
 
-  @keyframes fadeIn {
-    from {
+  @keyframes authCardIn {
+    0% {
       opacity: 0;
-      transform: translateY(-10px);
+      transform: translateY(18px) scale(0.992);
     }
-    to {
+    60% {
       opacity: 1;
-      transform: translateY(0);
+      transform: translateY(-6px) scale(1.006);
     }
+    100% {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  /* Respect user preference for reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+    transform: none;
   }
 `;
 

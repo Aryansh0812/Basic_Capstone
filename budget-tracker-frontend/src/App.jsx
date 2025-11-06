@@ -6,9 +6,9 @@ import Dashboard from "./pages/Dashboard";
 import ProtectedRoute from "./components/common/ProtectedRoute";
 import Layout from "./components/common/Layout"; //add this import
 import Welcome from "./pages/Welcome";
+import Transactions from "./pages/Transactions";
 
 // temporary placeholders for pages we’ll add later
-const Transactions = () => <h2>Transactions Page (Coming Soon)</h2>;
 const Budget = () => <h2>Budget Page (Coming Soon)</h2>;
 const Reports = () => <h2>Reports Page (Coming Soon)</h2>;
 
@@ -68,6 +68,16 @@ export default function App() {
           </ProtectedRoute>
         }
       />
+      <Route 
+        path="/transactions"
+  element={
+    <ProtectedRoute>
+      <Layout>
+        <Transactions/>
+      </Layout>
+    </ProtectedRoute>
+  }
+  />
 
       {/* 404 Fallback (optional) */}
       <Route path="*" element={<h2>404 - Page Not Found</h2>} />

@@ -1,34 +1,63 @@
+// src/hooks/useAuth.js
 import { useState, useEffect } from "react";
 import { loginRequest, registerRequest } from "../api/auth";
+import api from "../api/axios";
 
 export default function useAuth() {
   const [user, setUser] = useState(() => {
-    const raw = localStorage.getItem("user");
-    return raw ? JSON.parse(raw) : null;
+    try {
+      const raw = localStorage.getItem("user");
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
   });
 
-  // optional: validate token on mount (lightweight)
+  // helper to check token existence
+  const isTokenPresent = () => {
+    try {
+      return !!localStorage.getItem("access");
+    } catch {
+      return false;
+    }
+  };
+
+  const [isAuthenticated, setIsAuthenticated] = useState(isTokenPresent());
+
   useEffect(() => {
-    const access = localStorage.getItem("access");
-    if (!access) setUser(null);
+    // update auth state when localStorage changes in the same tab
+    const handleStorage = () => {
+      setIsAuthenticated(isTokenPresent());
+      try {
+        const raw = localStorage.getItem("user");
+        setUser(raw ? JSON.parse(raw) : null);
+      } catch {
+        setUser(null);
+      }
+    };
+
+    window.addEventListener("storage", handleStorage);
+    // also set it on mount
+    handleStorage();
+
+    return () => window.removeEventListener("storage", handleStorage);
   }, []);
 
   const login = async ({ email, password }) => {
     const res = await loginRequest({ email, password });
-    // expected res.data = { access, refresh, ...maybe user }
-    const { access, refresh, user: userData } = res.data;
-    if (access) {
-      localStorage.setItem("access", access);
-    }
-    if (refresh) {
-      localStorage.setItem("refresh", refresh);
-    }
+    const { access, refresh, user: userData } = res.data || {};
+    if (access) localStorage.setItem("access", access);
+    if (refresh) localStorage.setItem("refresh", refresh);
     if (userData) {
       localStorage.setItem("user", JSON.stringify(userData));
       setUser(userData);
     } else {
-      setUser({ email });
+      // if backend doesn't return user object, still set a basic user record
+      const basic = { email };
+      localStorage.setItem("user", JSON.stringify(basic));
+      setUser(basic);
     }
+    setIsAuthenticated(true);
     return res;
   };
 
@@ -42,8 +71,10 @@ export default function useAuth() {
     localStorage.removeItem("refresh");
     localStorage.removeItem("user");
     setUser(null);
+    setIsAuthenticated(false);
+    // navigate out of hook; component should redirect or we can force
     window.location.href = "/login";
   };
 
-  return { user, login, register, logout, isAuthenticated: !!user };
+  return { user, isAuthenticated, login, register, logout };
 }

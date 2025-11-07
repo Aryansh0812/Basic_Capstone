@@ -13,56 +13,13 @@ const Container = styled.div`
   padding: 20px;
 `;
 
-// const Card = styled.div`
-//   width: 420px;
-//   background: #ffffff;
-//   padding: 40px 36px;
-//   border-radius: 18px;
-//   box-shadow: 0 6px 24px rgba(0, 0, 0, 0.1);
-//   animation: fadeIn 0.6s ease;
-
-//   @keyframes fadeIn {
-//     from {
-//       opacity: 0;
-//       transform: translateY(-10px);
-//     }
-//     to {
-//       opacity: 1;
-//       transform: translateY(0);
-//     }
-//   }
-// `;
 const Card = styled.div`
-  width: 400px;
-  background: white;
-  padding: 40px;
-  border-radius: 16px;
-  box-shadow: 0 10px 30px rgba(2,6,23,0.12);
-  transform-origin: center;
-  animation: authCardIn 520ms cubic-bezier(.22,.9,.35,1);
-
-  @keyframes authCardIn {
-    0% {
-      opacity: 0;
-      transform: translateY(18px) scale(0.992);
-    }
-    60% {
-      opacity: 1;
-      transform: translateY(-6px) scale(1.006);
-    }
-    100% {
-      opacity: 1;
-      transform: translateY(0) scale(1);
-    }
-  }
-
-  /* Respect user preference for reduced motion */
-  @media (prefers-reduced-motion: reduce) {
-    animation: none;
-    transform: none;
-  }
+  width: 420px;
+  background: #ffffff;
+  padding: 40px 36px;
+  border-radius: 18px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.1);
 `;
-
 
 const Title = styled.h2`
   margin: 0 0 25px;
@@ -80,14 +37,6 @@ const Input = styled.input`
   border: 1px solid #d1d5db;
   font-size: 15px;
   background: #f9fafb;
-  transition: 0.2s ease;
-
-  &:focus {
-    outline: none;
-    border-color: ${({ theme }) => theme.colors.primary};
-    box-shadow: 0 0 0 2px rgba(78, 137, 174, 0.2);
-    background: #fff;
-  }
 `;
 
 const Button = styled.button`
@@ -100,7 +49,7 @@ const Button = styled.button`
   font-weight: 500;
   border-radius: 10px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: 0.2s ease;
 
   &:hover {
     background: ${({ theme }) => theme.colors.accent};
@@ -113,30 +62,15 @@ const Button = styled.button`
   }
 `;
 
-const ErrorText = styled.p`
-  color: #e11d48;
-  margin: 10px 0 0;
+const ErrorAlert = styled.div`
+  background: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+  padding: 10px 14px;
+  border-radius: 8px;
   font-size: 14px;
-  text-align: center;
-`;
-
-const FooterText = styled.div`
-  margin-top: 18px;
-  text-align: center;
-  font-size: 14px;
-  color: #6b7280;
-
-  a {
-    color: #4e89ae;
-    text-decoration: none;
-    font-weight: 500;
-    transition: color 0.2s ease;
-
-    &:hover {
-      color: ${({ theme }) => theme.colors.accent};
-      text-decoration: underline;
-    }
-  }
+  margin-bottom: 16px;
+  text-align: left;
 `;
 
 export default function Register() {
@@ -160,75 +94,96 @@ export default function Register() {
     e.preventDefault();
     setError("");
 
+    //Local frontend validations
+
+    if (!form.name.trim()) {
+      setError("Please enter your full name.");
+      return;
+    }
+
+    if (!form.email.includes("@") || !form.email.includes(".")) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+
     if (form.password !== form.password2) {
-      setError("Passwords do not match");
+      setError("Passwords do not match.");
+      return;
+    }
+
+    if (form.password.length < 8) {
+      setError("Password must be at least 8 characters long.");
+      return;
+    }
+
+    if (/^\d+$/.test(form.password)) {
+      setError("Password cannot be entirely numeric.");
       return;
     }
 
     setLoading(true);
     try {
       await register(form);
+      alert("Registration successful! Please login.");
       nav("/login");
     } catch (err) {
-      console.error(err);
-      setError(
-        err.response?.data?.email?.[0] ||
-          err.response?.data?.detail ||
-          "Registration failed"
-      );
-    } finally {
+  console.error("Register error raw:", err);
+  setError("A user with this email already exists.");
+}finally {
       setLoading(false);
     }
   };
 
   return (
     <>
-    <Container>
-      <Card>
-        <Title>Create an Account</Title>
-        <form onSubmit={handleSubmit}>
-          <Input
-            name="name"
-            value={form.name}
-            onChange={handleChange}
-            placeholder="Full Name"
-            required
-          />
-          <Input
-            name="email"
-            type="email"
-            value={form.email}
-            onChange={handleChange}
-            placeholder="Email Address"
-            required
-          />
-          <Input
-            name="password"
-            type="password"
-            value={form.password}
-            onChange={handleChange}
-            placeholder="Password"
-            required
-          />
-          <Input
-            name="password2"
-            type="password"
-            value={form.password2}
-            onChange={handleChange}
-            placeholder="Confirm Password"
-            required
-          />
-          <Button type="submit" disabled={loading}>
-            {loading ? "Creating Account..." : "Register"}
-          </Button>
-        </form>
-        {error && <ErrorText>{error}</ErrorText>}
-        <FooterText>
-          Already have an account? <Link to="/login">Login</Link>
-        </FooterText>
-      </Card>
-    </Container>
-    <Footer />
+      <Container>
+        <Card>
+          {error && <ErrorAlert>{error}</ErrorAlert>}
+
+          <Title>Create an Account</Title>
+          <form onSubmit={handleSubmit}>
+            <Input
+              name="name"
+              value={form.name}
+              onChange={handleChange}
+              placeholder="Full Name"
+              required
+            />
+            <Input
+              name="email"
+              type="email"
+              value={form.email}
+              onChange={handleChange}
+              placeholder="Email Address"
+              required
+            />
+            <Input
+              name="password"
+              type="password"
+              value={form.password}
+              onChange={handleChange}
+              placeholder="Password (min 8 characters)"
+              required
+            />
+            <Input
+              name="password2"
+              type="password"
+              value={form.password2}
+              onChange={handleChange}
+              placeholder="Confirm Password"
+              required
+            />
+            <Button type="submit" disabled={loading}>
+              {loading ? "Creating Account..." : "Register"}
+            </Button>
+          </form>
+
+          <p style={{ textAlign: "center", marginTop: 16 }}>
+            Already have an account? <Link to="/login">Login</Link>
+          </p>
+        </Card>
+      </Container>
+      <Footer />
     </>
   );
 }
